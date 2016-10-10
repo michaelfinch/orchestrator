@@ -65,7 +65,6 @@ type Configuration struct {
 	MySQLConnectTimeoutSeconds                   int      // Number of seconds before connection is aborted (driver-side)
 	MySQLOrchestratorReadTimeoutSeconds          int      // Number of seconds before backend mysql read operation is aborted (driver-side)
 	MySQLTopologyReadTimeoutSeconds              int      // Number of seconds before topology mysql read operation is aborted (driver-side)
-	MySQLInterpolateParams                       bool     // Do not use sql prepare statement if true
 	DefaultInstancePort                          int      // In case port was not specified on command line
 	SlaveLagQuery                                string   // custom query to check on slave lg (e.g. heartbeat table)
 	SlaveStartPostWaitMilliseconds               int      // Time to wait after START SLAVE before re-readong instance (give slave chance to connect to master)
@@ -128,7 +127,8 @@ type Configuration struct {
 	AgentSSLSkipVerify                           bool              // When using SSL for the Agent, should we ignore SSL certification error
 	AgentSSLPrivateKeyFile                       string            // Name of Agent SSL private key file, applies only when AgentsUseSSL = true
 	AgentSSLCertFile                             string            // Name of Agent SSL certification file, applies only when AgentsUseSSL = true
-	AgentSSLCAFile                               string            // Name of the Agent Certificate Authority file, applies only when AgentsUseSSL = true
+	AgentSSLCAFile                               string            // Name of the Agent client Certificate Authority file, applies only when AgentsUseSSL = true
+	AgentSSLRootCAFile                           string            // Name of the Agent server Certificate Authority file, applies only when AgentsUseSSL = true
 	AgentSSLValidOUs                             []string          // Valid organizational units when using mutual TLS to communicate with the agents
 	UseSSL                                       bool              // Use SSL on the server web port
 	UseMutualTLS                                 bool              // When "true" Use mutual TLS for the server's web and API connections
@@ -220,7 +220,6 @@ func newConfiguration() *Configuration {
 		MySQLConnectTimeoutSeconds:                   2,
 		MySQLOrchestratorReadTimeoutSeconds:          30,
 		MySQLTopologyReadTimeoutSeconds:              10,
-		MySQLInterpolateParams:                       false,
 		DefaultInstancePort:                          3306,
 		InstancePollSeconds:                          5,
 		ReadLongRunningQueries:                       true,

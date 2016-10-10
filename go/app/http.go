@@ -136,7 +136,7 @@ func standardHttp(discovery bool) {
 		}
 	} else if config.Config.UseSSL {
 		log.Info("Starting HTTPS listener")
-		tlsConfig, err := ssl.NewTLSConfig(config.Config.SSLCAFile, config.Config.UseMutualTLS)
+		tlsConfig, err := ssl.NewTLSConfig(config.Config.SSLCAFile, "", config.Config.UseMutualTLS)
 		if err != nil {
 			log.Fatale(err)
 		}
@@ -175,7 +175,7 @@ func agentsHttp() {
 	// Serve
 	if config.Config.AgentsUseSSL {
 		log.Info("Starting agent HTTPS listener")
-		tlsConfig, err := ssl.NewTLSConfig(config.Config.AgentSSLCAFile, config.Config.AgentsUseMutualTLS)
+		tlsConfig, err := ssl.NewTLSConfig(config.Config.AgentSSLCAFile, "", config.Config.AgentsUseMutualTLS)
 		if err != nil {
 			log.Fatale(err)
 		}

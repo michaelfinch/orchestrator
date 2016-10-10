@@ -79,6 +79,7 @@
   "AgentSSLPrivateKeyFile": "",
   "AgentSSLCertFile": "",
   "AgentSSLCAFile": "",
+  "AgentSSLRootCAFile": "",
   "AgentSSLValidOUs": [],
   "UseSSL": false,
   "UseMutualTLS": false,

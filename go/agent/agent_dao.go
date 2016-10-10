@@ -32,6 +32,7 @@ import (
 	"github.com/outbrain/orchestrator/go/config"
 	"github.com/outbrain/orchestrator/go/db"
 	"github.com/outbrain/orchestrator/go/inst"
+	"github.com/outbrain/orchestrator/go/ssl"
 )
 
 var SeededAgents chan *Agent = make(chan *Agent)
@@ -42,15 +43,30 @@ func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, httpTimeout)
 }
 
-var httpTransport = &http.Transport{
-	TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Config.AgentSSLSkipVerify},
-	Dial:            dialTimeout,
-	ResponseHeaderTimeout: httpTimeout,
-}
-var httpClient = &http.Client{Transport: httpTransport}
-
 // httpGet is a convenience method for getting http response from URL, optionaly skipping SSL cert verification
 func httpGet(url string) (resp *http.Response, err error) {
+	var httpTransport *http.Transport
+	if config.Config.AgentsUseSSL {
+		tlsConfig, err := ssl.NewTLSConfig("", config.Config.AgentSSLRootCAFile, config.Config.AgentsUseMutualTLS)
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig.InsecureSkipVerify = config.Config.AgentSSLSkipVerify
+
+		httpTransport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+			Dial:            dialTimeout,
+			ResponseHeaderTimeout: httpTimeout,
+		}
+	} else {
+		httpTransport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Config.AgentSSLSkipVerify},
+			Dial:            dialTimeout,
+			ResponseHeaderTimeout: httpTimeout,
+		}
+	}
+	httpClient := &http.Client{Transport: httpTransport}
+
 	return httpClient.Get(url)
 }
 

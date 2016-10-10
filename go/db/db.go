@@ -887,7 +887,7 @@ func OpenTopology(host string, port int) (*sql.DB, error) {
 // TODO: Way to have password mixed with TLS for various nodes in the topology.  Currently everything is TLS or everything is password
 func SetupMySQLTopologyTLS(uri string) (string, error) {
 	if !topologyTLSConfigured {
-		tlsConfig, err := ssl.NewTLSConfig(config.Config.MySQLTopologySSLCAFile, !config.Config.MySQLTopologySSLSkipVerify)
+		tlsConfig, err := ssl.NewTLSConfig(config.Config.MySQLTopologySSLCAFile, "", !config.Config.MySQLTopologySSLSkipVerify)
 		// Drop to TLS 1.0 for talking to MySQL
 		tlsConfig.MinVersion = tls.VersionTLS10
 		if err != nil {
@@ -910,7 +910,7 @@ func OpenOrchestrator() (*sql.DB, error) {
 	if config.Config.DatabaselessMode__experimental {
 		return nil, nil
 	}
-	mysql_uri := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?timeout=%ds&readTimeout=%ds&interpolateParams=%t",
+	mysql_uri := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?timeout=%ds&readTimeout=%ds",
 		config.Config.MySQLOrchestratorUser,
 		config.Config.MySQLOrchestratorPassword,
 		config.Config.MySQLOrchestratorHost,
@@ -918,7 +918,6 @@ func OpenOrchestrator() (*sql.DB, error) {
 		config.Config.MySQLOrchestratorDatabase,
 		config.Config.MySQLConnectTimeoutSeconds,
 		config.Config.MySQLOrchestratorReadTimeoutSeconds,
-		config.Config.MySQLInterpolateParams,
 	)
 	if config.Config.MySQLOrchestratorUseMutualTLS {
 		mysql_uri, _ = SetupMySQLOrchestratorTLS(mysql_uri)
@@ -978,7 +977,7 @@ func registerOrchestratorDeployment(db *sql.DB) error {
 // Modify the supplied URI to call the TLS config
 func SetupMySQLOrchestratorTLS(uri string) (string, error) {
 	if !orchestratorTLSConfigured {
-		tlsConfig, err := ssl.NewTLSConfig(config.Config.MySQLOrchestratorSSLCAFile, true)
+		tlsConfig, err := ssl.NewTLSConfig(config.Config.MySQLOrchestratorSSLCAFile, "", true)
 		// Drop to TLS 1.0 for talking to MySQL
 		tlsConfig.MinVersion = tls.VersionTLS10
 		if err != nil {
@@ -1081,11 +1080,7 @@ func ExecOrchestrator(query string, args ...interface{}) (sql.Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbexec := sqlutils.Exec
-	if config.Config.MySQLInterpolateParams {
-		dbexec = sqlutils.ExecNoPrepare
-	}
-	res, err := dbexec(db, query, args...)
+	res, err := sqlutils.Exec(db, query, args...)
 	return res, err
 }
 

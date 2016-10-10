@@ -40,8 +40,8 @@ func HasString(elem string, arr []string) bool {
 }
 
 // NewTLSConfig returns an initialized TLS configuration suitable for client
-// authentication. If caFile is non-empty, it will be loaded.
-func NewTLSConfig(caFile string, mutualTLS bool) (*tls.Config, error) {
+// authentication. If clientCaFile and rootCaFile are non-empty, they will be loaded.
+func NewTLSConfig(clientCaFile, rootCaFile string, mutualTLS bool) (*tls.Config, error) {
 	var c tls.Config
 
 	// Set to TLS 1.2 as a minimum.  This is overridden for mysql communication
@@ -54,8 +54,8 @@ func NewTLSConfig(caFile string, mutualTLS bool) (*tls.Config, error) {
 		log.Info("MutualTLS requested, client certificates will be verified")
 		c.ClientAuth = tls.VerifyClientCertIfGiven
 	}
-	if caFile != "" {
-		data, err := ioutil.ReadFile(caFile)
+	if clientCaFile != "" {
+		data, err := ioutil.ReadFile(clientCaFile)
 		if err != nil {
 			return &c, err
 		}
@@ -63,7 +63,18 @@ func NewTLSConfig(caFile string, mutualTLS bool) (*tls.Config, error) {
 		if !c.ClientCAs.AppendCertsFromPEM(data) {
 			return &c, errors.New("No certificates parsed")
 		}
-		log.Info("Read in CA file:", caFile)
+		log.Info("Read in client CA file:", clientCaFile)
+	}
+	if rootCaFile != "" {
+		data, err := ioutil.ReadFile(rootCaFile)
+		if err != nil {
+			return &c, err
+		}
+		c.RootCAs = x509.NewCertPool()
+		if !c.ClientCAs.AppendCertsFromPEM(data) {
+			return &c, errors.New("No certificates parsed")
+		}
+		log.Info("Read in root CA file:", rootCaFile)
 	}
 	c.BuildNameToCertificate()
 	return &c, nil

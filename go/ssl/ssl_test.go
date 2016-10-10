@@ -32,10 +32,12 @@ func TestHasString(t *testing.T) {
 
 // TODO: Build a fake CA and make sure it loads up
 func TestNewTLSConfig(t *testing.T) {
-	fakeCA := writeFakeFile(pemCertificate)
-	defer syscall.Unlink(fakeCA)
+	fakeClientCA := writeFakeFile(pemCertificate)
+	fakeRootCA := writeFakeFile(pemCertificate)
+	defer syscall.Unlink(fakeClientCA)
+	defer syscall.Unlink(fakeRootCA)
 
-	conf, err := ssl.NewTLSConfig(fakeCA, true)
+	conf, err := ssl.NewTLSConfig(fakeClientCA, fakeRootCA, true)
 	if err != nil {
 		t.Errorf("Could not create new TLS config: %s", err)
 	}
@@ -46,7 +48,7 @@ func TestNewTLSConfig(t *testing.T) {
 		t.Errorf("ClientCA empty even though cert provided")
 	}
 
-	conf, err = ssl.NewTLSConfig("", false)
+	conf, err = ssl.NewTLSConfig("", "", false)
 	if err != nil {
 		t.Errorf("Could not create new TLS config: %s", err)
 	}
@@ -141,7 +143,7 @@ func TestReadPEMData(t *testing.T) {
 }
 
 func TestAppendKeyPair(t *testing.T) {
-	c, err := ssl.NewTLSConfig("", false)
+	c, err := ssl.NewTLSConfig("", "", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +158,7 @@ func TestAppendKeyPair(t *testing.T) {
 }
 
 func TestAppendKeyPairWithPassword(t *testing.T) {
-	c, err := ssl.NewTLSConfig("", false)
+	c, err := ssl.NewTLSConfig("", "", false)
 	if err != nil {
 		t.Fatal(err)
 	}
